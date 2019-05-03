@@ -1,0 +1,98 @@
+Introduction
+
+Register Transfer Languages such as Verilog and VHDL are the FPGA equivalent
+of CPU assembly lanuage: they allow operation to be controlled at a very low
+level, which may result in higher performance and/or lower resource 
+utilization. 
+
+Like assembly language, RTL code is more difficult to write, debug, and understand.
+This low-level code is most useful when it is developed by experts and packaged
+into libraries for re-use. 
+
+This tutorial demonstrates the process of developing and using an RTL library
+in Intel HLS components. The RTL has been chosen for simplicity and the 
+functions could have been implemented just as effectively in HLS. 
+
+
+RTL libraries in HLS
+
+An RTL library is an archive file that contains one or more library modules. 
+The archive file format is the same as that of the native linker of your 
+operating system - having the suffix .a on Linux and .lib on Windows. 
+
+As with a conventional archive library, the library modules are object files
+each of which contains a set of callable functions. A header file containing
+declarations of the functions should be provided with the library. 
+
+RTL library modules employ a specialized form of your operating system's object  
+file format. These modules capture the RTL files that implement the functions as
+well as an XML specification of the interface between HLS and RTL code. 
+
+When you use an RTL library, you must include its header file in your component 
+code so that your component can call the functions in the RTL library as if 
+they were C functions. You must also specify the RTL library file name on the 
+i++ command line as described below. You cannot use the i++ command -l or 
+-L options to specify an RTL library or its location.
+
+For more information, see the HLS Libraries section of the Intel High Level 
+Synthesis Compiler Reference Manual. 
+
+
+Sample RTL functions
+ 
+The functions in this tutorial are inspired by four byte-order conversion functions 
+declared in the Unix standard header <arpa/inet.h> (on Windows these functions are
+declared in the header <Winsock2.h>). Internet standards require that the bytes
+of host and port addresses are transmitted in order from the most to least
+significant. CPUs may store 16- and 32-bit values in this order; but more commonly
+values are stored with the least significant byte at the lowest address.
+
+The inet library defines four functions ntohl(), ntohs(), htonl(), and htons() which
+perform byte order conversion between host and network formats. In HLS programs
+the byte order is the same as x86 and ARM hosts, that is, least significant byte first. 
+
+The RTL implementations of these functions are therefore very simple, as the 
+bytes are re-ordered by changing the wiring of the data-path.     
+
+The library function names - and underlying RTL module name - incorporate the library
+name to reduce the risk of clashes with functions defined in other libraries that
+you may choose to use.  
+
+
+RTL library preparation and packaging
+
+Before the RTL-based functions can be used, the RTL and XML description must be
+packaged with object code of the emulation models, resulting in a library module.
+The library module format is a specialized form of the native object file format. 
+
+Create the library module using the fpga_crossgen tool:
+ 
+fpga_crossgen --target hls --emulation_model rtl_inet_emu_models.cpp rtl_inet.xml
+
+Once the object files have been prepared, use fpga_libtool to assemble a set of
+object files into an archive library.
+
+Assemble a set of the special object files into an archive library with the fpga_libtool 
+command:
+ 
+(on Linux)   fpga_libtool --target hls --create librtl.a rtl_inet.o
+(on Windows) fpga_libtool --target hls --create rtl.lib  rtl_inet.obj
+
+These steps are performed automatically by the Makefile and build.bat script included 
+with this tutorial. 
+
+
+Using RTL library code in your HLS component
+
+When you compile your component, specify the library as an argument to the i++ command:
+(on Linux)   i++ basic_library_tutorial.cpp librtl.a 
+(on Windows) i++ basic_library_tutorial.cpp rtl.lib
+
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

@@ -1,0 +1,98 @@
+This tutorial demonstrates how to control capacity balancing in your HLS Systems
+of Tasks designs. Capacity balancing is often necessary to optimize performance
+and area consumption.
+
+The Systems of Tasks feature allows you to seperate your hardware into different
+concurrent tasks and connect them together through streams. However, as you add
+parallel datapaths, you must ensure that the capacity of each data path is
+balanced with the latency or delay of other parallel datapaths. To achieve this,
+you can add buffering capacity in the internal streams connecting different
+tasks. If you do not properly balance your datapaths, your design may not
+achieve high throughput, or it may even result in deadlock.
+
+This tutorial includes a simple design with two parallel paths, as shown in the
+following diagram:
+
+           + Input
+           |
+           |
++----------v---------+
+|      splitter      |
++------+---------+---+
+       |         |
+       |         +----------+
+       |                    |
++------v-------------+      |
+|      filter        |      |     Side Path
++------+-------------+      |(Internal Stream)
+       |                    |
+       |         +----------+
+       |         |
++------v---------v---+
+|      merger        |
++----------+---------+
+           |
+           v Output
+
+In this design, the filter task carries out a dot product calculation, which
+cannot be completed in one clock cycle. Therefore, the compiler pipelines the
+calculation, and the dot product result is available several clock cycles after
+the input is provided.
+
+To estimate the latency of the "filter" task:
+
+  1. Check the function viewer in the report
+  2. Identify the input read node and the output write node
+  3. Check the difference in the start cycle for the output write node and the
+     input read node.
+
+To achieve peak performance, ensure that the "Side Path" stream has a capacity
+larger than the latency of the "filter" task. The capacity of a datapath is the
+number of iterations that can be active in a piece of hardware at a given time.
+Capacity can come in many forms, including a compiler-generated datapath (such
+as another task) or a FIFO in the explicit streaming interfaces. You can
+control a stream's FIFO depth using the ihc::buffer template parameter.
+
+In this design example, you should have sufficient capacity in the side path to
+match the latency of the "filter" task that was described earlier.
+  - If the capacity of the side path is smaller than the "filter" latency, then
+    the side path fills up and stalls its upstream "splitter" task before the
+    first calculation in the "filter" task is finished. Because the "merger" task
+    depends on data from both the "filter" task and the side path, it cannot
+    consume data in the side path to free it up until the calculations already in
+    flight in the "filter" task finish a few cycles later. In the cycles where the
+    side path is full, the "splitter" task cannot send more data to the "filter"
+    task because doing so would clobber data already in the side path.
+  - On the other hand, if the capacity of the side path is larger than the
+    "filter" latency, there will be no such performance penalties. However, any
+    extra capacity will be wasted area. As a best practice, it is better to have a
+    bit more capacity than the reported latency of the task you are trying to
+    bypass. In this design, the "filter" task has an input-to-output latency of
+    roughly 25 cycles, and so the capacity of the side path is pre-set to 30
+    (floats) if not specified in the Makefile. In this case, the "filter" task is
+    always active.
+
+To use this tutorial:
+1) Run the tutorial. This will build and run the design without SIDE_FIFO_CAPACITY
+   in the part_1_unbalanced case and SIDE_FIFO_CAPACITY=30 (in the part_2_balanced case)
+2) Examine the report in part_1_unbalanced.prj
+   Check in verification statistics that the final output stream "comb_out" is only
+   sending data roughly half of the time.
+4) Examine the report in part_2_balanced.prj
+   Confirm that the input to output latency of the main data processing block in
+   "filter" is roughly 25 cycles. Also check the verification statistics, note the
+   final output stream "comb_out" is sending data every cycle. Also note that the
+   overall component latency is smaller than that of part_1_unbalanced.prj.
+
+Other than the pipeline latency, there might be delay that comes directly from
+the code (e.g. loop structure), which can cause similar capacity balancing
+issues. This is demonstrated in the balancing_loop_latency tutorial.
+
+This tutorial requires the following tools to be installed:
+  - i++
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"
+

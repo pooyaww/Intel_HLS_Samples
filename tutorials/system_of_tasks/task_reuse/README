@@ -1,0 +1,59 @@
+Review <hls_install_directory>/examples/tutorials/system_of_tasks/parallel_loop
+before going through this tutorial. The key things that you should be familiar
+with before going through this tutorial are:
+  - System of Tasks
+  - ihc::stream class
+  - Global streams
+Knowledge of the C++ language, particularly templates, would be useful but some
+aspects of it are covered here in brief.
+
+This tutorial demonstrates how to re-use a single task function multiple times
+within a single component. Several different techniques are shown. However, the
+hardware implementation for all of the methods is the same, so the performance
+of all of the variants is equivalent.
+
+part_1_wrappers:
+The first approach is using general C-like APIs (that is without the use of
+templated functions). In this example, the general task_function() takes in two
+streams as reference arguments. Since functions with reference arguments cannot
+be launched or collected, the task_function() must be wrapped in other
+functions. In this case, the function calls to task_function() are wrapped in
+task_1(), task_2(), and task_3(). These three function hard-code the streams and
+call the general task_function(). The wrapper functions can then be launched or
+collected from the top level component foo(). While this method is the simplest,
+it is also the most verbose because it requires an explicit wrapper function for
+each re-use.
+
+part_2_templates:
+The second approach converts the function reference arguments (for the streams)
+to template reference arguments. This source transformation allows you to
+leverage C++ to effectively create a new function for each parametrization of
+the templates and eliminates the need for wrapper functions and allows you to
+directly launch/collect the task_function with the correct stream parameters.
+While this approach provides a huge advantage over part_1, it is still not fully
+generalized yet since the template specifies an exact parametrization of the
+stream class. In this example, the streams provided to the task_function() must
+be an ihc::stream of type int with no additional parameters. As such, it also
+disallows passing ihc::stream_in or ihc::stream_out to the task_function().
+Observe the Synthesized Function Name Mapping table in the Summary page of the
+HTML report to see the generated names of the synthesized functions for the
+different template instantiations.
+
+part_3_generalized:
+part_3_generalized extends part_2_templates and also specifies the type of the
+streams in the function template. The approach shown in this example allows you
+to specify the type of the streams as well as the streams themselves when you
+invoke the task_function() from the ihc::launch/ihc::collect calls. The simple
+way to do this is to directly specify the type of the stream in the template
+parametrization of the task_function() as shown for the call (1). However, a
+safer approach to doing this is by making use of the decltype keyword in C++
+which automatically infers the type of the input. This approach is also shown
+in the example in call (2) to the task_function().
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

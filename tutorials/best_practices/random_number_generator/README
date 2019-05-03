@@ -1,0 +1,19 @@
+This tutorial demonstrates how to generate random numbers in an HLS component by using the random number generator class that is provided with the Intel HLS Compiler.
+
+The HLS/rand_lib.h header file supports two different classes of random number generator: Uniform and Gaussian.
+The uniform random number generator class generates random numbers from a uniform distribution of numbers, 
+while the Gaussian random number generator class generates random numbers from a Gaussian (or normal) distribution of numbers.
+ 
+To generate random numbers in your component, declare an instance of either the `RNG_Uniform` or `RNG_Gaussian` class. 
+
+When you declare the random number generator object as `static`, each invocation of the component continues the random sequence.
+If you do not declare the random number generator object as `static`, the sequence restarts each time the component is invoked. 
+
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

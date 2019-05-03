@@ -1,0 +1,56 @@
+You can execute multiple loops in parallel by moving them into asynchronous 
+task functions.
+
+part_1_sequential_loop.cpp
+  Part 1 demonstrates a simple design with two sequential loops:
+  1. the first loop reduces the 64-element stream to a 16-element array by 
+     adding groups of 4 elements together;
+  2. the second loop reduces the 16-element array to a single element by 
+     multiplying all elements together.
+  Since these two loops do not run in parallel, the second loop will not start 
+  processing until the array 'add_buffer' is full. If we could run the multiply 
+  loop in parallel with the add loop, we could reduce component latency. The 
+  multiply loop should process a new piece of data as soon as it's produced by 
+  the add loop, while the add loop works to produce the next piece of data. 
+  There are two ways to achieve this:
+  1. Merge the two loops together (Part 2)
+  2. Use system of tasks to describe the parallelism of the multiply loop and 
+     add loop (Part 3)
+
+part_2_merged_loop.cpp
+  The add loop and the multiply loop are merged into a single loop. This method 
+  works well for loops with similar trip counts and IIs, but since the multiply 
+  loop only has a trip count of 16 and does not achieve II=1, merging the two 
+  loops will give you a loop with poor II.
+  Observation:
+    Navigate to the "Verification Statistics" view of 
+    part_2_merged_loop.prj/reports/report.html and observe that the latency of 
+    component "add_mult" is higher than in part 1 
+    (part_1_sequential_loop.prj/reports/report.html). The latency is higher 
+    because the II of the merged loop is determined by the multiply loop that 
+    has a larger II than the other; the trip count of the merged loop is 
+    determined by the add loop that traverses all sample data. The larger II 
+    and higher trip count cause higher latency in the end.
+
+part_3_parallel_loop.cpp
+  The multiplier loop is launched in an asynchronous task "multiply_task". You 
+  can describe high-level parallelism using system of tasks. To have two loops 
+  communicate with each other, you should use a stream instead of an array. 
+  Note that in Part 1, the add loop stores its results in a RAM block, and in 
+  Part 3, the add loop stores its results in a global-scoped stream. This means 
+  the multiply task will automatically process data as it gets produced by the 
+  add loop.
+  Observation:
+    Navigate to the "Verification Statistics" view of 
+    part_3_parallel_loop.prj/reports/report.html and observe that the latency 
+    of component "add_mult" is lower than in both part 1 and part 2. By moving 
+    the multiplication to an asynchronous task, the merged loop has an II of 1 
+    clock cycle, which is not affected by the expensive multiplication. 
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

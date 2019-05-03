@@ -1,0 +1,46 @@
+An internal stream is a FIFO used in a single function which is implemented by 
+the ihc::stream object.
+
+This tutorial demonstrates an example where internal streams can be helpful. In 
+this design, each iteration of the outer loop reads all values written by the 
+previous iteration from the buffer and writes one less value to the buffer. 
+You may refer to the store-load dependency diagram for this design in section 
+"Internal Streams" in the Intel HLS Compiler Best Practices Guide. Because 
+values written in the buffer will not be read immediately, you can use an 
+internal stream as the buffer to store the data for future iterations. This 
+buffering works even if the delay between write and read is not a constant as 
+in this design, because the buffering does not rely on static scheduling. 
+
+part_1_array_feedback.cpp
+  Using an array as the buffer, the size of the array is determined by the 
+  longest delay between storing and loading of a value.
+  Observations: 
+    1) Navigate to the "Loops Analysis" view of 
+       part_1_array_feedback.prj/reports/report.html and observe the II of 
+       nested loops. The inner loop has a high II due to memory dependency; the 
+       outer loop cannot be pipelined because the number of iterations of the 
+       inner loop is not constant.
+    2) Navigate to the "Verification Statistics" view of the report and observe 
+       the latency of component "feedback".
+
+part_2_stream_feedback.cpp
+  Using an internal stream as the buffer, users don't need to worry about the 
+  delay between write and read.
+  Observations:
+    1) Navigate to the "Loops Analysis" view of 
+       part_2_stream_feedback.prj/reports/report.html and compare the II of 
+       nested loops with which of part 1. The II of both inner and outer loops 
+       are 1 because the internal stream neither has memory dependency nor 
+       relies on static scheduling between each write and read.
+    2) Navigate to the "Verification Statistics" view of the report and compare 
+       the latency of component "feedback" with which of component "feedback" 
+       in part 1. The significant decrease in the latency of the component is 
+       because both inner and outer loops can be pipelined to have an II of 1.
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

@@ -1,0 +1,92 @@
+This tutorial compares the slave memory usage across two versions of an HLS
+component function called "reduce_sum". The "reduce_sum" function computes the
+sum of elements across the second dimension (i.e. sum of each row) of an
+array[NROW][NCOL] where NROW and NCOL are 4 and 8, respectively. The array is
+flattened and passed into the component through a slave memory interface named
+"sized_buffer". The component computes the sum of each row concurrently and
+stores the result in the slave memory. The sum of the k^th row is stored in the 
+first column of sized_buffer: 
+
+   "sized_buffer[NCOL * (k-1)]" ("sized_buffer[k-1][0]" in 2D).
+
+The first version (part_1_default_memory.cpp) uses only the default memory
+configuration for the slave memory interface. The second version
+(part_2_optimized_memory.cpp) uses hls_bankbits meomory attribute to improve the
+resource usage of the component.
+
+For more information about memory attributes, refer to the Local Variables in
+Components section of Intel HLS Compiler Reference Manual.
+
+Run the Makefile.
+
+1. Component with Default Memory Configuration
+==============================================
+
+   Navigate to the HTML report located in
+      "part_1_default_memory.prj/reports/report.html"
+
+   Open the HTML report and click "Summary" at the top of the page.
+   
+   Observation:
+      Component "reduce_sum" uses 32 RAMs.
+
+   Click "System Viewers" at the top of the page and navigate to the
+   "Component Memory Viewer" view from the dropdown menu. Under the "Memory
+   List" pane, click the memory "sized_buffer" to render the memory system in
+   the "Component Memory Viewer" pane.
+
+   Observation:
+      The slave memory "sized_buffer" has 16 banks. The width of each bank is 32
+      bits and the depth of each bank is 2 words.
+   
+   Explanation:
+      Based on the access pattern of "sized_buffer", the compiler avoids 
+      arbitrated loads and stores by putting "sized_buffer" into 16 banks and
+      using the 4 least significant address bits to address each bank.
+      
+      By default, the compiler uses the least-significant address bits as
+      bank-selection bits. For this design, since the component computes the sum
+      of all rows concurrently (that is, accesses all elements of a column at
+      the same time), the default strategy gives poor quality of results. We
+      should ask the compiler to put each row into one bank and thereby use only
+      4 banks without getting arbitrated loads and stores.
+
+2. Component with Memory Attributes Set
+=======================================
+
+   Optimization:
+
+      Since each row has 8 elements, to put each row into 1 bank, we should ask
+      the compiler to skip the lowest 3 (log(8)) address bits, which are used to
+      select elements in different columns, and use the 3^rd and 4^th address
+      bits as row-selection bits.
+      We can implement this optimization by adding the hls_bankbits memory
+      attribute to the slave memory "sized_buffer", as shown in
+      part_2_optimized_memory.cpp:
+         hls_bankbits(3,4) - create 4 banks and use the 3^rd and 4^th
+                             bits for bank selection.
+   
+   Navigate to the HTML report located in
+      "part_2_optimized_memory.prj/reports/report.html"
+
+   Open the HTML report and click "Summary" at the top of the page.
+   
+   Observation:
+      Component "reduce_sum" uses only 8 RAMs.
+
+   Click "System Viewers" at the top of the page and navigate to the
+   "Component Memory Viewer" view from the dropdown menu. Under the "Memory
+   List" pane, click the memory "sized_buffer" to render the memory system in
+   the "Component Memory Viewer" pane.
+
+   Observation:
+      The slave memory "sized_buffer" has only 4 banks. Each bank is still 32
+      bits wide but 8 words in depth.
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

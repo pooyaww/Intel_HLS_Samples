@@ -1,0 +1,78 @@
+This tutorial describes how to use the Fmax II report to optimize your HLS 
+components. Using the data in this report, you can use the 
+hls_scheduler_target_fmax_mhz component attribute and ii pragma to tweak
+your component's througput and area utilization. All example components 
+implement the same function (BKDRHash). The only difference is how the 
+hls_scheduler_target_fmax_mhz attribute and ii pragma are applied.
+
+After you run the tutorial as described below, view the Fmax II report by 
+clicking the 'Throughput Analysis' tab, and choosing 'Fmax II report'.
+
+*NOTE: The 'Scheduled Fmax' values shown in the Fmax II report do not reflect 
+the fMAX that Intel Quartus Prime can achieve for your component.
+Before you start optimizing, check the timing of your component by
+running Quaruts compile (see below). Changes in the 'Scheduled Fmax' values
+correlates with changes in the fMAX that Intel Quartus Prime can achieve, so
+you should not need to run Quartus compile very often. 
+
+How to run Quartus compile:
+Option 1: add "--quartus-compile" to i++ command. 
+Option 2: on Linux run: "make USERCXXFLAGS=--quartus-compile"
+          on Winwdows run: "build quartus-compile"
+
+There are 4 example files:
+
+1. part_1_default.cpp: hls_scheduler_target_fmax_mhz attribute and
+                       ii pragma ii compiler directive are not used.
+2. part_2_fmax480.cpp: hls_scheduler_target_fmax_mhz(480) is applied on the 
+                       component.
+2. part_3_fmax240.cpp: hls_scheduler_target_fmax_mhz(240) is applied on the 
+                       component.
+4. part_4_fmax240_ii1.cpp: hls_scheduler_target_fmax_mhz(240) is applied on
+                       the component, and '#pragma ii 1' is applied on the loop.
+
+In case 1, no fMAX or II constraint were provided. By default, the compiler
+tries to optimize throughput using heuristics to balance high fMAX and small II.
+The block 'B2' is scheduled at less than 480 MHz, so this block is limiting
+this component's fMAX. Note that the 'Summary' tab shows that Intel Quartus
+Prime achieved a different fMAX than the 'Scheduled Fmax'. (The "Summary" tab
+contains fMAX only if you run Quartus compile as described above)
+
+In case 2, the hls_scheduler_target_fmax_mhz(480) attribute tells 
+the compiler to target 480 MHz. Since the II is unconstrained, the compiler 
+inserts extra pipelining to schedule the component at 480 MHz instead of
+trying to balance fMAX and II. Now, all blocks are scheduled at the target
+fMAX, but B2 now has an higher II than case 1. Note that the 'Summary' tab
+shows that Intel Quartus Prime still achieved a different fMAX than the
+'Scheduled Fmax', but that it is higher than the fMAX in case 1. (The "Summary"
+tab contains fMAX only if you run Quartus compile as described above)
+
+In case 3, the hls_scheduler_target_fmax_mhz(240) attribute tells 
+the compiler to target 240 MHz. Once again, all blocks are scheduled at the 
+target fMAX, but B2 has an lower II than case 2. Since we reduced 
+the fMAX target, the compiler can insert fewer pipeline registers in the other 
+blocks. Notice that B1 now has a lower latency. Finally, note that Intel Quartus 
+Prime still achieved a different fMAX than the 'Scheduled Fmax', but that it is 
+lower than the fMAX in case 1 and case 2.
+
+In case 4, the hls_scheduler_target_fmax_mhz(240) attribute tells 
+the compiler to target 240 MHz, and the '#pragma ii 1' compiler directive forces
+block B2 to be scheduled with II 1. Since the '#pragma ii 1' directive takes 
+priority over the fMAX target, the compiler was not able to schedule block B2 at 
+the requested target. Note that the 'Scheduled Fmax' for case 4 is the lowest of 
+the 4 cases, and that the fMAX achieved by Intel Quartus Prime is also the 
+lowest of the 4 cases.
+
+By comparing the results in estimated resource usage and block latency for
+different fMAX and II targets, you can see that the compiler inserts more pipeline
+stages (and therefore increases latency and area usage) if the component is
+scheduled for a higher fMAX.
+
+
+This tutorial requires the following tools to be installed:
+  - i++
+  - Modelsim
+
+To run this tutorial (without Quartus compile):
+  - On Linux run "make"
+  - On Windows run "build"

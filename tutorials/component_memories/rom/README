@@ -1,0 +1,94 @@
+This tutorial demonstrates how you can apply attributes to ROMs and when it
+could be beneficial. ROM is, by default, single-pumped and single-ported, and
+is replicated for each access in each component. By using the 'hls_singlepump'
+or the 'hls_doublepump' attribute, you can ask for single-pumped dual-ported
+ROMs or double-pumped dual-ported ROMs. This setup may result in lower on-chip
+memory usage for deep ROMs, at the potential cost of Fmax degradation.
+
+For more information about memory attributes, refer to the Local Variables in
+Components section of Intel HLS Compiler Reference Manual.
+
+Run the Makefile, and for each of the [ProjectFolder] directories specified
+below, navigate to the HTML report (located in
+[ProjectFolder]/reports/report.html) in the following order:
+
+1. part_1_default_rom.prj
+   Explanation:
+   A 'static const' array 'a' of ints with 600 members is defined at file-scope 
+   with the first ten elements initialized to {0,1,2,3,4,5,6,7,8,9}. The rest
+   are zero initialized by default. No memory attributes are applied to this
+   array.  
+   The HLS component 'partial_sum' returns the sum of 'a[x:x+4]', which is
+   accumulated in the return value 'rdata' while reading values from 'a' in an
+   unrolled loop of length 4.
+
+   Open the HTML report and navigate to the "Summary" from the dropdown menu:
+      "View reports..." -> "Summary"
+   
+   Observation:
+      Component "partial_sum" uses 8 RAMs.
+
+   Navigate to the "Area analysis of system" view from the dropdown menu:
+      "View reports..." -> "Area analysis of system"
+
+   Find the component memory 'a' by expanding each line of the Area Analysis of
+   System report that shows 8 RAMs. Eventually, you will reach a line like
+   this:
+      On-chip Read-Only Memory Lookup (x4)
+   Click the line to see more details about 'a'.
+
+   Observation:
+      The memory 'a' is replicated 4 times because the loop is of length 4, and
+      the loop is fully unrolled. There is one access to 'a' in each loop
+      iteration, and a copy of 'a' is created for each access. Since array 'a'
+      has a size of 19200 bits (600 ints x 32 bits per int), each copy of 'a'
+      requires 2 on-chip RAMs. Therefore, the component uses 8 on-chip RAMs.
+
+2. part_2_singlepump_rom.prj
+   This design adds the 'hls_singlepump' memory attribute to the file-scope 
+   constant array 'a'.
+
+   Open the HTML report and navigate to the "Summary" from the dropdown menu:
+      "View reports" -> "Summary"
+   
+   Observation:
+      Component "partial_sum" uses 4 RAMs.
+
+   Navigate to the "Component memory viewer" from the dropdown menu:
+      "View reports..." -> "Component Memory Viewer"
+   Under the "Memory List" pane, click the memory 'a' to render the memory
+   system in the "Component memory viewer" pane.
+
+   Observation:
+      The memory 'a' has 1 bank and each bank has 2 read ports. This 
+      configuration means that although 'a' needs 4 load sites in the component,
+      it needs to be replicated only 2 times, which fits into 4 on-chip RAMs.
+
+3. part_3_doublepump_rom.prj
+   This design adds the 'hls_doublepump' memory attribute to the file-scope 
+   constant array 'a'.
+
+   Open the HTML report and navigate to the "Summary" from the dropdown menu:
+      "View reports..." -> "Summary"
+   
+   Observation:
+      Component "partial_sum" uses only 2 RAMs.
+
+   Navigate to "Component memory viewer" from the dropdown menu:
+      "View reports..." -> "Component memory viewer"
+   Under the "Memory List" pane, click the memory 'a' to render the memory
+   system in the "Component memory viewer" pane.
+
+   Observation:
+      The memory 'a' has 1 bank and each bank has 4 read ports. There are 4
+      load sites in the component, but 'a' needs to be replicated only once,
+      which requires only 2 on-chip RAMs.
+
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

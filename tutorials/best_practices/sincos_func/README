@@ -1,0 +1,56 @@
+This tutorial shows how and why you can save area by using sinpi/cospi over 
+sin/cos, and also shows the numerical limitation of this approach.
+
+Range reduction takes advantage of the periodicity of trigonometric functions 
+to remove full revolutions and keeps only the fractional revolution when 
+evaluating the function. Range reduction for sin/cos is expensive in hardware 
+because they have period of 2π. The sinpi and cospi functions have a period 
+of 2, which uses much less hardware as it is a power of 2. However, to use 
+sinpi/cospi you must scale your input arguments by a factor of 1.0/π.
+
+The extendedmath.h header file includes 1.0/π as a float constant (M_PI_INV_F) 
+and as a double constant (M_PI_INV_D), which you can use to simplify the 
+scaling of your input arguments. For example, float a = sinf(x) would be 
+approximately equivalent to float a = sinpif(x * M_PI_INV_F), for angles in 
+reasonable range.
+
+You can save even more area my modifying your component by rescaling all 
+angles to have a period of 2, instead of [0, 2*π), and pass those angles 
+directly to sinpi/cospi. This modification helps to avoid multiplying by one 
+of the PI_INV constants each time.
+
+However, the equivalence between sinpi/cospi functions do not work well with 
+large angles. As angles get larger, more of your limited precisions bits are 
+used to represent the number full revolutions. The fractional revolution is 
+represented by fewer and fewer bits as the angle value increases, and after a 
+certain point the fractional part of the angle is not represented. This angle 
+representation issue results in sinpi/cospi evaluating to sinpi(0)/cospi(0) 
+above a certain angle size threshold (around 1e7 for single precision values 
+  and 1e16 for doubles precision values). The equivalence between sin(x) 
+and sinpi(x/pi) also breaks.
+
+The tutorial code demonstrates the effect for single precision float sin(), 
+but this effect applies to other trigonometric functions like cos and tan, as 
+well as double precision floats.
+
+This tutorial generates output to stdout. When you run the tutorial, you might 
+want to redirect the output to a file so you can examine the output later.
+
+To learn about how sin/cos and sinpi/cospi might work in your component, run 
+the tutorial and then complete the following steps:
+  1) Examine the code in the get_sin(x) and get_sin_renorm(x) components to 
+     see how you can refactor code using sin/cos by using sinpi/cospi.
+  2) Check the numerical results (in stdout) from the two components. Review 
+     the numerical difference at various angles. Notice the range of angles 
+     that generates an acceptable output.
+  3) Review the area report, and compare the area estimates for the 
+     get_sin(x) and get_sin_renorm(x) components to see the area savings from
+     using sinpi/cospi instead of sin/cos.
+
+This tutorial requires the following tools to be installed:
+  - i++
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

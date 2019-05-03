@@ -1,0 +1,39 @@
+You can share hardware resources at the function level by putting expensive 
+compute blocks in HLS tasks.
+
+This tutorial demonstrates a design that computes the 'square root of a dot 
+product' multiple times. Without resource sharing, multiple identical compute 
+blocks for square root of dot product are generated on the FPGA. However by 
+sharing the compute block in a task, the task is invoked whenever the square 
+root of the dot product is calculated. This sharing means that you avoid 
+duplicating the hardware for this operation on the FPGA. One trade-off made by 
+resource sharing is that, multiple invocations of the same task block each 
+other, so the latency and II of the top level component could be increased.
+
+part_1_direct_computing.cpp
+  The component directly implements square root of dot product four times and 
+  each of them generates the hardware for its own use. 
+
+part_2_resource_sharing.cpp
+  Square root of dot product is moved into the task 'sqrt_dotProduct', which is 
+  invoked both in the loop and at the return point. The hardware of it is 
+  shared by each invocation of the task.
+  Observations:
+    1) Navigate to the "Area Analysis of System" view of 
+       part_2_resource_sharing.prj/reports/report.html and compare the 
+       estimated area numbers with those of part 1 
+       (part_1_direct_computing.prj/reports/report.html). The area numbers of 
+       the compute block is quartered because only one hardware for square root 
+       of dot product is generated on FPGA, while four identical hardwares are 
+       generated in part 1. 
+    2) Navigate to the "Verification Statistics" view of the report and compare 
+       the latency and II of component "dut" with part 1. Both latency and II 
+       are higher than in part 1 because of the trade-off mentioned above. 
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

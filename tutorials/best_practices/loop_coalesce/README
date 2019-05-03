@@ -1,0 +1,26 @@
+The loop_coalesce pragma directs the compiler to combine the loops nested within a loop into a single loop.
+The pragma optionally takes an integer to specify the number of nested loop levels to coalesce.
+Coalescing nested loops reduces the component area usage by eliminating the area overhead of the loops. 
+Coalescing nested loops also reduces the latency of the component, which could in turn reduce area. 
+
+The C++ program in this tutorial, accum, performs a matrix accumulation function: matrixResult = A_NUM_MATRICES*...*A_3*A_2*A_1. 
+This tutorial demonstrates the usage of #pragma loop_coalesce to improve the area and performance of the design.
+
+Since the loop bodies in this tutorial are small, the compiler may choose to unroll some of them, in which case there 
+would be no loop to coalesce, and the loop_coalesce pragma would be ignored.  To avoid this, #pragma unroll 1 is added to the
+loops that are marked for coalescing.
+
+To see the improvement between designs, open the following files in a web browser:
+- tutorial_original.prj/reports/report.html
+- tutorial_coalesce.prj/reports/report.html
+
+Compare the estimated resource utilization and notice the resource savings in the design which uses #pragma loop_coalesce.
+After running the executables, the verification statistics reveal that coalescing loops reduces the overall latency of the component.
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - Mentor Graphics ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

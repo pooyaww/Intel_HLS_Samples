@@ -1,0 +1,24 @@
+This design example illustrates a way to improve QoR by using the Algorithmic C datatypes (AC datatypes).
+When you use AC datatypes, you can have variables of arbitrary-length, which can reduce area of the component.
+This optimization is expected to reduce area. 
+However, the impact of this optimization is likely smaller than the impact on component area and performance of optimizing algorithmic bottlenecks like loop initiation intervals (IIs). 
+Therefore, your optimization efforts should initially focus on algorithmic bottlenecks before you optimize the size of your datatypes. 
+For more information, see "Arbitrary Precision Math Support" in the Intel High Level Synthesis Compiler Reference Manual.
+
+This example demonstrate the Quality of Results (QoR) difference between a component with integer-typed data and a component with ac_int-typed data while keeping the algorithm the same. 
+In this example, two input images that are represented as an array of pixels are added.
+Each pixel has three 8-bit values representing the R, G, and B data, which means that the RGB data for each pixel can be stored in 24 bits.
+The RGB data of each pixel is stored in an integer.
+The two input images are added pixel by pixel and two pixels are added by adding the R, G and B data separately.
+The additions are iterated for the size of the array.
+Because the array size is known in advance, the loop induction variable can also be an ac_int datatype variable to further save on area.
+
+After running this tutorial, open up the report page and observe the decrease in component area.
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

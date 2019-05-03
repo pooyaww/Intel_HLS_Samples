@@ -1,0 +1,111 @@
+This tutorial shows the advantage of using the readyLatency parameter with
+stream writes to achieve a better loop initiation interval (II).  This
+tutorial consists of two parts, which are best observed in order.
+
+transmit.cpp 
+In this tutorial, assume that streams A and B are trying to send the result of
+multiplying data from each of their streams to stream C. Stream C writes data 
+using the following rules: 
+1) Steam C can write the next result only after it has an acknowledge of
+   the previous result. 
+2) If the acknowledge of the result fails, stream C makes up to 3 reattempts to
+   write the data again.
+   - If all the reattempts of any result fail, the program assumes
+     something is wrong with stream C and times out.  
+The High Level Design Reports show that the component has an II of 3.
+
+transmit_ready_latency.cpp 
+The functionality of this design is identical to that of transmit.cpp, except
+that the stream C has a readyLatency value of 3. The High Level Design Reports
+show that the component has an II of 1.  
+
+The II issues of transmit.cpp are fixed in transmit_ready_latency.cpp by using
+readyLatency because readyLatency can be used to change the distance between
+the check of ready (the success return) and the write. That is, the component
+can start the next iteration of the loop before the value to be written to the
+stream is computed. This can be illustrated through the following diagram: 
+
+              WITHOUT READY LATENCY                          
+                                                                                      
+CYCLE 1:                 Begin next iteration of loop 
+                                        |
+              ____________________      |   
+             |                    |<------------------------        
+             |    Computation     |                         /\       
+             |____________________|                         |                
+                    |     |                                 |       
+                    |     |                                 |            
+                    \/    \/                                |   
+                 valid   data                               |         
+                    |      |                                |       
+CYCLE N:            |      |                                |          
+              ______\/_____\/______                         |   
+             |                    |<-------- stream ready   |          
+             |        iowr        |--------> stream valid   |      
+             |____________________|--------> stream data    |     
+                        |                                   |      
+                        |                                   |       
+                        \/                                  |       
+                       valid                                |        
+                        |                                   |       
+CYCLE N+1:              |                                   |        
+                        |                                   |        
+                        |                                   |        
+                        |                                   |        
+                      success------------------------------->          
+
+					  
+					  
+              WITH READY LATENCY
+
+CYCLE 1: 
+
+    Begin next iteration of loop   
+               |
+               |  ______________________________________      
+        -------->|                                      |
+        |        |              ready                   |<---- stream ready 
+        |        |______________________________________|
+        |<------------------------|                         
+                                  |
+                __________________|                                   
+               |                  | 
+               |                  | 
+               |                  |   
+               |                  |
+ CYCLE N:      |    ______________|_________________        
+               |    |                              | 
+               |    |                              |
+               |    |                              |
+               |    |                              |
+               |    |                              | 
+               |    |         Computation          | 
+               |    |                              |
+               |    |                              |
+               |    |                              |
+               |    |                              | 
+               |    |                              |
+               |    |______________________________|           
+               |                   |      |
+               |                 valid   data
+               |                   |      |
+CYCLE N+1:     |--------------     |      |
+                       ______\/___ \/_____\/_                    
+                       |                    |                     
+                       |        iowr        |--------> stream valid        
+                       |____________________|--------> stream data
+                                  |
+                                  |
+                                  \/  
+                                 valid  
+
+
+  
+ 
+This tutorial requires the following tools to be installed:
+  - Intel High Level Synthesis Compiler 
+  - Mentor Graphics ModelSim 
+
+To run this tutorial:
+  - On Linux, run "make"
+  - On Windowsi, run "build"  

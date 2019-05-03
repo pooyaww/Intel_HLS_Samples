@@ -1,0 +1,23 @@
+The usesPackets, bitsPerSymbol, firstSymbolInHighOrderBits, and usesEmpty attributes allow HLS components to be compatible with non-HLS cores which use these features (for instance, those adhering to the Avalon-ST Video protocol). This tutorial consists of two parts, which are best observed in order. 
+
+part1_avalon_st_video.cpp
+  This design implements a component that maximizes the red symbol of a pixel if the blue or green symbols exceed a threshold. On each clock cycle, four pixels are transmitted in parallel.
+  The firstSymbolInHighOrderBits attribute on the stream is set to false (the default setting).
+
+part2_avalon_st_video_packets.cpp
+  The functionality of this component is identical to that of part1_avalon_st_video.cpp. The component uses start of packet and end of packet signals on the streams to determine the beginning and end of the video packet, and it uses the empty signal to determine how many pixels are invalid at the end of the packet (since the number of pixels does not evenly divide by four). 
+  The firstSymbolInHighOrderBits attribute is set to true, in order to connect with IP cores with different symbol ordering. The first symbol is always in the low order bits inside the component, so you do not need to change the symbol order in your source; the symbol order specified for the stream takes care of swapping on the input and output.
+
+  Open the high-level design report (report.html).
+    1) Compare the estimated resource utilization. Notice the resource savings in part2_avalon_st_video_packets where a counter and a comparator from the for-loop were eliminated.
+    2) Navigate to the Component viewer page of both reports.
+       a) Notice the component in part1_avalon_st_video does not require the number of pixels as an input.
+       b) Notice the additional signals on the stream interfaces (in_pixels and out_pixels) in part2_avalon_st_video_packets.
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - Mentor Graphics ModelSim
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"

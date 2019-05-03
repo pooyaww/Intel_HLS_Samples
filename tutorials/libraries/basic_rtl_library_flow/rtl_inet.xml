@@ -1,0 +1,121 @@
+<!-- rtl_inet.xml
+     In this file the calling interface to the RTL modules is described to the compiler.
+     There is a section for each of the four functions that are callable from OpenCL or HLS. 
+     All of the inet functions just rearrange bytes and do not require control logic; their
+     integration into the pipeline is very simple. 
+     Because the native byte order is the opposite of network byte order, htons and ntohs
+     use the same RTL module; similiarly htonl and ntohl use a common RTL module. 
+     Therefore all of the functions are implemented by modules in a single Verilog source
+     file. -->
+
+<RTL_SPEC>
+
+  <!-- 'name' is how this function will be called from an OpenCL kernel.
+       'module' is the top-level HDL module name that implements the function. -->
+  <FUNCTION name="rtl_htons" module="rtl_inet_bytereverse_uint16">
+    <ATTRIBUTES>
+      <!-- This section provides information that the compiler needs to integrate the RTL module 
+           into the computational pipeline that it is building. In this case the RTL does not contain
+           registers and therefore cannot stall the pipeline or handle stall signals from the 
+           data destination (e.g. stalls due to memory contention). The compiler must therefore build
+           stall-handling logic around the RTL). 
+           Since there are no registers in the RTL, it has zero latency.
+           The function doe not have state; the compiler may use this information to better
+           optimize code that uses the function. -->
+      <IS_STALL_FREE value="yes"/>
+      <IS_FIXED_LATENCY value="yes"/>
+      <EXPECTED_LATENCY value="0"/>
+      <HAS_SIDE_EFFECTS value="no"/>
+      <!-- Set to "yes" to allow multiple instances of this function to be merged by the compiler. -->
+      <ALLOW_MERGING value="yes"/>
+    </ATTRIBUTES>
+    <INTERFACE>
+      <!-- although the RTL has no registers, clock and reset inputs must still be specified -->
+      <AVALON port="clock" type="clock"/>
+      <AVALON port="resetn" type="resetn"/>
+      <!-- similarly the RTL module must provide handshake signals even when it is not stallable -->
+      <AVALON port="ivalid" type="ivalid"/>
+      <AVALON port="iready" type="iready"/>
+      <AVALON port="ovalid" type="ovalid"/>
+      <AVALON port="oready" type="oready"/>
+      <!-- call arguments are mapped onto the input ports, in the order in which they are specified -->
+      <INPUT  port="datain" width="16"/>
+      <!-- the single output port provides the result of the function call -->
+      <OUTPUT port="dataout" width="16"/>
+    </INTERFACE>
+    <REQUIREMENTS>
+      <FILE name="rtl_inet_bytereverse.v" />
+    </REQUIREMENTS>
+  </FUNCTION>
+
+  <FUNCTION name="rtl_ntohs" module="rtl_inet_bytereverse_uint16">
+    <ATTRIBUTES>
+      <IS_STALL_FREE value="yes"/>
+      <IS_FIXED_LATENCY value="yes"/>
+      <EXPECTED_LATENCY value="0"/>
+      <HAS_SIDE_EFFECTS value="no"/>
+      <ALLOW_MERGING value="yes"/>
+    </ATTRIBUTES>
+    <INTERFACE>
+      <AVALON port="clock" type="clock"/>
+      <AVALON port="resetn" type="resetn"/>
+      <AVALON port="ivalid" type="ivalid"/>
+      <AVALON port="iready" type="iready"/>
+      <AVALON port="ovalid" type="ovalid"/>
+      <AVALON port="oready" type="oready"/>
+      <INPUT  port="datain" width="16"/>
+      <OUTPUT port="dataout" width="16"/>
+    </INTERFACE>
+    <REQUIREMENTS>
+      <FILE name="rtl_inet_bytereverse.v" />
+    </REQUIREMENTS>
+  </FUNCTION>
+
+  <FUNCTION name="rtl_htonl" module="rtl_inet_bytereverse_uint32">
+    <ATTRIBUTES>
+      <IS_STALL_FREE value="yes"/>
+      <IS_FIXED_LATENCY value="yes"/>
+      <EXPECTED_LATENCY value="0"/>
+      <HAS_SIDE_EFFECTS value="no"/>
+      <ALLOW_MERGING value="yes"/>
+    </ATTRIBUTES>
+    <INTERFACE>
+      <AVALON port="clock" type="clock"/>
+      <AVALON port="resetn" type="resetn"/>
+      <AVALON port="ivalid" type="ivalid"/>
+      <AVALON port="iready" type="iready"/>
+      <AVALON port="ovalid" type="ovalid"/>
+      <AVALON port="oready" type="oready"/>
+      <INPUT  port="datain" width="32"/>
+      <OUTPUT port="dataout" width="32"/>
+    </INTERFACE>
+    <REQUIREMENTS>
+      <FILE name="rtl_inet_bytereverse.v" />
+    </REQUIREMENTS>
+  </FUNCTION>
+
+  <FUNCTION name="rtl_ntohl" module="rtl_inet_bytereverse_uint32">
+    <ATTRIBUTES>
+      <IS_STALL_FREE value="yes"/>
+      <IS_FIXED_LATENCY value="yes"/>
+      <EXPECTED_LATENCY value="0"/>
+      <HAS_SIDE_EFFECTS value="no"/>
+      <ALLOW_MERGING value="yes"/>
+    </ATTRIBUTES>
+    <INTERFACE>
+      <AVALON port="clock" type="clock"/>
+      <AVALON port="resetn" type="resetn"/>
+      <AVALON port="ivalid" type="ivalid"/>
+      <AVALON port="iready" type="iready"/>
+      <AVALON port="ovalid" type="ovalid"/>
+      <AVALON port="oready" type="oready"/>
+      <INPUT  port="datain" width="32"/>
+      <OUTPUT port="dataout" width="32"/>
+    </INTERFACE>
+    <REQUIREMENTS>
+      <FILE name="rtl_inet_bytereverse.v" />
+    </REQUIREMENTS>
+  </FUNCTION>
+
+</RTL_SPEC>
+

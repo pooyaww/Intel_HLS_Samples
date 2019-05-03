@@ -1,0 +1,74 @@
+This tutorial demonstrates how to avoid divergent loops in the 
+code. Divergent loops can occur when in a nested loop, the 
+execution of inner loop depends on a condition. These conditions
+can cause the outer loop to take different paths, preventing the
+Intel HLS Compiler from pipelining the loops and giving you a
+bad QoR for your component.
+
+An example of divergent loops occur when you have an "if-else"
+statement between two nested loops.
+
+In this tutorial, complex multiplication is used as an example to 
+demonstrate how to avoid divergent loops.
+
+A complex class is defined in this example which has overloaded
+multiplication and addition operators along with other required
+functions such as set/get real/imaginary.
+
+class complexType{};
+This class is also templatized, so it works with any type of
+input data type supported by HLS.
+
+There are two .cpp files to show different behavior and QoR with 
+and without divergent loops.
+
+1_cmp_mult_divergent.cpp
+   This file has divergent loops with conditional statements on 
+   line 19-26-33.
+
+   To compile this file, issue the following command: 
+      Linux:   make 1_cmp_mult_divergent
+      Windows: build.bat 1_cmp_mult_divergent
+
+   After you compile this file, review the high-level design 
+   report (report.html) in 1_cmp_mult_divergent.prj/reports
+   directory by opening the report in a browser. In the 
+   "loop analysis" section of the report block B3 shows 
+   Pipeline=No and Details=Divergent inner loop.
+      
+   Run the executable with the following command:
+      Linux:   ./1_cmp_mult_divergent
+      Windows: 1_cmp_mult_divergent.exe
+
+   After running the executable, check the reports again. Open
+   the "verification statistics" section. Observe min, max and avg 
+   latency.
+
+
+2_cmp_mult_efficient.cpp
+
+   This file has divergent loops removed and conditional 
+   statements are moved inside the loops on lines 21-32.
+
+   To compile this file, issue the following command: 
+      Linux:   make 2_cmp_mult_efficient
+      Windows: build.bat 2_cmp_mult_efficient
+
+   In the 2_cmp_mult_efficient.prj/reports directory, open the high-level 
+   design report (report.html) in a browser. Review the "Loop 
+   Analysis" section, and see that the details section does not have 
+   any comment as "divergent inner loops"
+
+   Run the executable with the following command:
+      Linux:   ./2_cmp_mult_efficient
+      Windows: 2_cmp_mult_efficient.exe
+
+   After you run the executable, check the high-level design 
+   report (report.html) again. Review the "Verfication Statistics" 
+   section and see the min, max, and avg latency. 
+
+   You can see that the min, max, and avg latency are significantly 
+   reduced. In testing, the typical reduction seen was ~2x.
+
+This tutorial requires the following tools to be installed:
+   - i++

@@ -1,0 +1,12 @@
+This design example demonstrates various use cases of ac_int as well as a few
+cases where you can achieve a higher QoR by using minor variations in coding style.
+For more information, see "Arbitrary Precision Math Support" in the Intel High Level Synthesis Compiler Reference Manual.
+In this example, ref/ac_fixed.h has been included to utilize Calypto `ac_fixed` when we compile the code with native compiler, for example g++.
+
+This tutorial requires the following tools to be installed:
+  - Intel HLS Compiler
+  - ModelSim-SE
+
+To run this tutorial:
+  - On Linux run "make"
+  - On Windows run "build"
