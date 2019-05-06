@@ -1,0 +1,9 @@
+export ALTERAPATH="/opt/intelFPGA_pro/19.1"
+export ALTERAOCLSDKROOT="${ALTERAPATH}/hld"
+export QUARTUS_ROOTDIR=${ALTERAPATH}/quartus
+export QUARTUS_ROOTDIR_OVERRIDE="$QUARTUS_ROOTDIR"
+export PATH=$PATH:${ALTERAPATH}/quartus/bin
+export PATH=$PATH:${ALTERAPATH}/nios2eds/bin
+export PATH=$PATH:${QSYS_ROOTDIR}
+export LD_LIBRARY_PATH=${ALTERAPATH}/quartus/linux64:$LD_LIBRARY_PATH
+export PATH=$PATH:${ALTERAPATH}/modelsim_ase/bin
