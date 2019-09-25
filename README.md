@@ -1,1 +1,1 @@
-# Intel_HLS_Samples
+# Intel_HLS_and_OCL_Samples
